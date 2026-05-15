@@ -1,18 +1,3 @@
-"""
-automate_NamaSiswa.py
-=====================
-Script otomatisasi preprocessing dataset Indonesian Abusive and Hate Speech Twitter Text.
-Mengubah data mentah (data.csv) menjadi data siap latih (TF-IDF features + label).
-
-Penggunaan:
-    python automate_NamaSiswa.py \
-        --data data.csv \
-        --kamusalay new_kamusalay.csv \
-        --output data_preprocessing \
-        --test_size 0.2 \
-        --max_features 10000
-"""
-
 import argparse
 import os
 import re
@@ -29,9 +14,9 @@ from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# ----------------------------
+
 # Setup logging
-# ----------------------------
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
@@ -40,9 +25,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ----------------------------
+
 # Download NLTK resources
-# ----------------------------
+
 def download_nltk_resources():
     """Download NLTK resources yang diperlukan."""
     resources = ['punkt', 'stopwords', 'punkt_tab']
@@ -51,9 +36,9 @@ def download_nltk_resources():
     logger.info("NLTK resources berhasil didownload.")
 
 
-# ----------------------------
+
 # Load Data
-# ----------------------------
+
 def load_data(data_path: str, kamusalay_path: str) -> tuple:
     """
     Memuat dataset utama dan kamus normalisasi.
@@ -83,9 +68,9 @@ def load_data(data_path: str, kamusalay_path: str) -> tuple:
     return df, kamusalay_dict
 
 
-# ----------------------------
+
 # Preprocessing Functions
-# ----------------------------
+
 def clean_missing_and_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     """Menghapus baris dengan Tweet kosong dan data duplikat."""
     before = len(df)
@@ -155,7 +140,7 @@ def preprocess_text(text: str, kamus: dict) -> str:
     text = normalize_slang(text, kamus)
     text = remove_stopwords_id(text)
     return text
-
+ 
 
 def apply_preprocessing(df: pd.DataFrame, kamusalay_dict: dict) -> pd.DataFrame:
     """Menerapkan preprocessing pada kolom Tweet."""
@@ -171,9 +156,9 @@ def apply_preprocessing(df: pd.DataFrame, kamusalay_dict: dict) -> pd.DataFrame:
     return df
 
 
-# ----------------------------
+
 # Feature Extraction
-# ----------------------------
+
 def extract_features(
     df: pd.DataFrame,
     test_size: float = 0.2,
@@ -215,9 +200,9 @@ def extract_features(
     return X_train_tfidf, X_test_tfidf, y_train, y_test, X_train, X_test, tfidf
 
 
-# ----------------------------
+
 # Save Outputs
-# ----------------------------
+
 def save_outputs(
     df: pd.DataFrame,
     X_train_tfidf, X_test_tfidf,
@@ -264,9 +249,9 @@ def save_outputs(
         logger.info(f"  - {f} ({size_kb:.1f} KB)")
 
 
-# ----------------------------
+
 # Main Pipeline
-# ----------------------------
+
 def run_preprocessing_pipeline(
     data_path: str,
     kamusalay_path: str,
@@ -325,9 +310,9 @@ def run_preprocessing_pipeline(
     logger.info("=" * 55)
 
 
-# ----------------------------
+
 # Entry point
-# ----------------------------
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Automate preprocessing: Indonesian Hate Speech Dataset'
