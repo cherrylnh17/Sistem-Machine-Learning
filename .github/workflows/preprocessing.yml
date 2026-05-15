@@ -59,7 +59,7 @@ jobs:
       - name: Run automate preprocessing
         run: |
           cd preprocessing
-          python automate_NamaSiswa.py \
+          python automate_Luqman.py \
             --data ../data/data.csv \
             --kamusalay ../data/new_kamusalay.csv \
             --output hate_speech_preprocessing \

@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 # Download NLTK resources
 
 def download_nltk_resources():
-    """Download NLTK resources yang diperlukan."""
     resources = ['punkt', 'stopwords', 'punkt_tab']
     for resource in resources:
         nltk.download(resource, quiet=True)
@@ -40,17 +39,6 @@ def download_nltk_resources():
 # Load Data
 
 def load_data(data_path: str, kamusalay_path: str) -> tuple:
-    """
-    Memuat dataset utama dan kamus normalisasi.
-
-    Args:
-        data_path     : Path ke file data.csv
-        kamusalay_path: Path ke file new_kamusalay.csv
-
-    Returns:
-        df            : DataFrame dataset utama
-        kamusalay_dict: Dictionary {slang: formal}
-    """
     logger.info(f"Memuat dataset dari: {data_path}")
     df = pd.read_csv(data_path, encoding='ISO-8859-1')
     logger.info(f"Dataset dimuat: {df.shape[0]} baris, {df.shape[1]} kolom.")
@@ -72,7 +60,6 @@ def load_data(data_path: str, kamusalay_path: str) -> tuple:
 # Preprocessing Functions
 
 def clean_missing_and_duplicates(df: pd.DataFrame) -> pd.DataFrame:
-    """Menghapus baris dengan Tweet kosong dan data duplikat."""
     before = len(df)
     df = df.dropna(subset=['Tweet'])
     df = df.drop_duplicates(subset=['Tweet'])
@@ -88,15 +75,6 @@ def lowercase_text(text: str) -> str:
 
 
 def remove_noise(text: str) -> str:
-    """
-    Menghapus elemen noise dari teks:
-    - Mention (@user)
-    - URL (http/https)
-    - Hashtag (#)
-    - Angka
-    - Tanda baca dan karakter khusus
-    - Spasi berlebih
-    """
     text = re.sub(r'@[\w]+', 'USER', text)
     text = re.sub(r'http\S+|www\S+', 'URL', text)
     text = re.sub(r'#[\w]+', '', text)
@@ -108,17 +86,12 @@ def remove_noise(text: str) -> str:
 
 
 def normalize_slang(text: str, kamus: dict) -> str:
-    """Menormalisasi kata slang/tidak baku menggunakan kamus kamusalay."""
     words = text.split()
     normalized = [kamus.get(word, word) for word in words]
     return ' '.join(normalized)
 
 
 def remove_stopwords_id(text: str) -> str:
-    """
-    Menghapus stopwords Bahasa Indonesia.
-    Termasuk kata-kata tidak informatif tambahan.
-    """
     stop_words = set(stopwords.words('indonesian'))
     additional_stopwords = {'user', 'url', 'rt', 'yg', 'dgn', 'nya', 'jg', 'aja', 'gak'}
     stop_words.update(additional_stopwords)
@@ -128,19 +101,12 @@ def remove_stopwords_id(text: str) -> str:
 
 
 def preprocess_text(text: str, kamus: dict) -> str:
-    """
-    Pipeline preprocessing lengkap:
-    1. Lowercase
-    2. Remove noise (mention, URL, hashtag, angka, tanda baca)
-    3. Normalisasi slang
-    4. Stopword removal
-    """
     text = lowercase_text(text)
     text = remove_noise(text)
     text = normalize_slang(text, kamus)
     text = remove_stopwords_id(text)
     return text
- 
+
 
 def apply_preprocessing(df: pd.DataFrame, kamusalay_dict: dict) -> pd.DataFrame:
     """Menerapkan preprocessing pada kolom Tweet."""
@@ -164,17 +130,6 @@ def extract_features(
     test_size: float = 0.2,
     max_features: int = 10000
 ) -> tuple:
-    """
-    Split data dan ekstraksi fitur TF-IDF.
-
-    Args:
-        df          : DataFrame dengan kolom 'Tweet_clean' dan 'HS'
-        test_size   : Proporsi data test
-        max_features: Jumlah maksimum fitur TF-IDF
-
-    Returns:
-        X_train_tfidf, X_test_tfidf, y_train, y_test, tfidf_vectorizer
-    """
     X = df['Tweet_clean']
     y = df['HS']
 
@@ -211,13 +166,6 @@ def save_outputs(
     tfidf,
     output_dir: str
 ) -> None:
-    """
-    Menyimpan semua output preprocessing ke output_dir:
-    - hate_speech_preprocessed.csv
-    - X_train.csv, X_test.csv, y_train.csv, y_test.csv
-    - X_train_tfidf.npz, X_test_tfidf.npz
-    - tfidf_vectorizer.pkl
-    """
     os.makedirs(output_dir, exist_ok=True)
 
     # Dataframe bersih
@@ -259,38 +207,22 @@ def run_preprocessing_pipeline(
     test_size: float = 0.2,
     max_features: int = 10000
 ) -> None:
-    """
-    Menjalankan seluruh pipeline preprocessing dari awal sampai akhir.
-
-    Args:
-        data_path     : Path ke data.csv
-        kamusalay_path: Path ke new_kamusalay.csv
-        output_dir    : Direktori output
-        test_size     : Proporsi test split
-        max_features  : Jumlah fitur TF-IDF
-    """
     logger.info("=" * 55)
     logger.info("MULAI PIPELINE PREPROCESSING HATE SPEECH DATASET")
     logger.info("=" * 55)
 
-    # Step 1: Download NLTK
     download_nltk_resources()
 
-    # Step 2: Load data
     df, kamusalay_dict = load_data(data_path, kamusalay_path)
 
-    # Step 3: Bersihkan missing & duplikat
     df = clean_missing_and_duplicates(df)
 
-    # Step 4: Preprocessing teks
     df = apply_preprocessing(df, kamusalay_dict)
 
-    # Step 5: Feature extraction & split
     (X_train_tfidf, X_test_tfidf,
      y_train, y_test,
      X_train, X_test, tfidf) = extract_features(df, test_size, max_features)
 
-    # Step 6: Simpan output
     save_outputs(
         df,
         X_train_tfidf, X_test_tfidf,
